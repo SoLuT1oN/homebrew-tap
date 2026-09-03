@@ -27,7 +27,25 @@ brew install --cask <cask>
 ## Casks
 
 - `capcap` - lightweight native menu bar screenshot tool.
+- `capcap-ai` - customized capcap with AI Calendar integration.
 - `clipcap` - permission-light Mac image annotation tool.
+
+The official `capcap` Cask and `capcap-ai` both install `capcap.app`, so they
+must not be installed at the same time.
+
+Install the private AI Calendar build:
+
+```bash
+brew tap SoLuT1oN/tap
+brew install --cask SoLuT1oN/tap/capcap-ai
+```
+
+Upgrade it later:
+
+```bash
+brew update
+brew upgrade --cask SoLuT1oN/tap/capcap-ai
+```
 
 ## Maintainer Flow
 
@@ -47,6 +65,11 @@ The capcap release workflow can dispatch `capcap_release_published` with
 `version` and `sha256` when its `HOMEBREW_TAP_TOKEN` secret is configured.
 The clipcap release workflow uses `clipcap_release_published` with the same
 payload shape.
+
+The private capcap release workflow dispatches `capcap_ai_release_published`
+with `version`, `sha256`, `tag`, and `asset_name`. The
+`bump-capcap-ai.yml` workflow validates that payload before updating only
+`Casks/capcap-ai.rb`.
 
 ## Update
 

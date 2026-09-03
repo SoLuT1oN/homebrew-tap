@@ -1,0 +1,92 @@
+name: Bump capcap AI
+
+on:
+  repository_dispatch:
+    types: [capcap_ai_release_published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Private version such as 1.7.11-ai.1
+        required: true
+        type: string
+      sha256:
+        description: SHA-256 of the published macOS zip
+        required: true
+        type: string
+      tag:
+        description: Optional tag; defaults to custom-v followed by version
+        required: false
+        type: string
+      asset_name:
+        description: Optional zip name; defaults from version
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-capcap-ai
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Update capcap-ai Cask
+    runs-on: macos-latest
+    steps:
+      - name: Checkout private Tap
+        uses: actions/checkout@v6
+
+      - name: Generate and validate Cask
+        id: cask
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          DISPATCH_SHA256: ${{ github.event.client_payload.sha256 }}
+          DISPATCH_TAG: ${{ github.event.client_payload.tag }}
+          DISPATCH_ASSET_NAME: ${{ github.event.client_payload.asset_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_SHA256: ${{ inputs.sha256 }}
+          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_ASSET_NAME: ${{ inputs.asset_name }}
+        run: |
+          set -euo pipefail
+          version="${DISPATCH_VERSION:-${INPUT_VERSION:-}}"
+          sha256="${DISPATCH_SHA256:-${INPUT_SHA256:-}}"
+          tag="${DISPATCH_TAG:-${INPUT_TAG:-}}"
+          asset_name="${DISPATCH_ASSET_NAME:-${INPUT_ASSET_NAME:-}}"
+
+          if [ -z "$version" ] || [ -z "$sha256" ]; then
+            echo "version and sha256 are required" >&2
+            exit 1
+          fi
+          tag="${tag:-custom-v${version}}"
+          asset_name="${asset_name:-capcap-${version}-macos.zip}"
+
+          bash scripts/generate-capcap-ai-cask.sh "$version" "$sha256" "$tag" "$asset_name"
+          ruby -c Casks/capcap-ai.rb
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Run Homebrew checks
+        run: |
+          set -euo pipefail
+          brew tap SoLuT1oN/tap
+          tap_dir="$(brew --repo SoLuT1oN/tap)"
+          cp Casks/capcap-ai.rb "$tap_dir/Casks/capcap-ai.rb"
+          brew style --cask "$tap_dir/Casks/capcap-ai.rb"
+          brew audit --cask --strict --online SoLuT1oN/tap/capcap-ai
+
+      - name: Commit and push Cask
+        env:
+          VERSION: ${{ steps.cask.outputs.version }}
+        run: |
+          set -euo pipefail
+          git add Casks/capcap-ai.rb
+          if git diff --cached --quiet -- Casks/capcap-ai.rb; then
+            echo "No capcap-ai Cask changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "capcap-ai ${VERSION}"
+          git push
