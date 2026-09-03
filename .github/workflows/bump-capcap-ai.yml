@@ -74,6 +74,7 @@ jobs:
           brew tap SoLuT1oN/tap
           tap_dir="$(brew --repo SoLuT1oN/tap)"
           cp Casks/capcap-ai.rb "$tap_dir/Casks/capcap-ai.rb"
+          brew ruby -e 'require "cask"; cask = Cask::CaskLoader.load("solut1on/tap/capcap-ai"); Cask::Installer.new(cask).check_conflicts'
           brew style --cask "$tap_dir/Casks/capcap-ai.rb"
           brew audit --cask --strict --online SoLuT1oN/tap/capcap-ai
 

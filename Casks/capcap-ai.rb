@@ -7,7 +7,10 @@ cask "capcap-ai" do
   desc "Customized capcap with AI Calendar integration"
   homepage "https://github.com/SoLuT1oN/capcap"
 
-  conflicts_with cask: "capcap"
+  conflicts_with cask: [
+    "realskyrin/tap/capcap",
+    "solut1on/tap/capcap",
+  ]
   depends_on macos: :sonoma
 
   app "capcap.app"
