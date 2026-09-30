@@ -1,6 +1,6 @@
 cask "capcap-ai" do
-  version "1.7.16-ai.1"
-  sha256 "c9dda0eb76395327e63e14010dedd84c92172aa54d4a4f42c8943e771544fa0d"
+  version "1.7.17-ai.1"
+  sha256 "fd9a5949740b70996ad2c89e672162544145918b4098ce147387d758f43cac14"
 
   url "https://github.com/SoLuT1oN/capcap/releases/download/custom-v#{version}/capcap-#{version}-macos.zip"
   name "capcap"
